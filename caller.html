@@ -1,0 +1,349 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style>
+    body, html {
+        margin: 0; padding: 0;
+    }
+    body {
+        font-size: 16px; 
+    }
+    video {
+        width:  320px; height:  240px; 
+        border:  1px solid black; background: black;
+    }
+    div.content {
+        display: flex;
+        flex-direction: row;
+    }
+    div.content > div {
+        position: relative;
+        padding: 10px;
+    }
+    div.control {
+        width: 300px;
+    }
+    input[type="text"] {
+        width: 100px;
+        margin-bottom: 10px; 
+    }
+    input[type="button"] {
+        width: 50px; height: 30px;
+    }
+    input {
+        font-size: 16px;
+    }
+</style>
+</head>
+<body>
+
+<script src="./js/adapter.js" type="text/javascript"></script>
+<script src="https://webrtc.github.io/adapter/adapter-0.2.9.js" type="text/javascript"></script>
+
+<!-- load Agora.io signaling library -->
+<script src="https://demo-sig.agora.io/web/AgoraSig-1.1.0.js"></script>
+
+<script src="./js/clientAgoraSignalingCallChannel.js" type="text/javascript"></script>
+<script src="./js/clientAgoraCallChannel.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+var signalingChannel, callChannel;
+
+var pc, local_stream;
+var doNothing = function() {},
+     dc, data = {};
+
+window.onload = function () {
+    initialize();
+};
+
+
+function initialize() {
+    $$("#target").value = get_query_param("target", "911");
+};
+
+function $$(selector) {
+    return document.querySelector(selector);
+}
+
+function get_query_param(name, def_value) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? (def_value || ""): decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function callout() {
+    signalingChannel = createSignalingChannel($$("#target").value, {
+//    signalingChannel = createSignalingChannel("911", {
+        onWaiting: function() {
+            console.log('waiting...');
+        },
+        onConnected: function() {
+            console.log('connected');
+			
+            var callid = ("" + Math.random()).substr(2, 5);
+            connect(callid);
+			// 传数据
+			var o = {
+				a: $$("#a").value
+				,b: $$("#b").value
+				,c: $$("#c").value
+				,d: $$("#d").value
+				,e: $$("#e").value
+				,f: $$("#f").value
+			};
+			// 传数据 end
+            var msg = {type: "invite", callid: callid, o: o}
+            
+			signalingChannel.send(msg);
+        },
+        onMessage: function(msg) {
+            console.log("message " + JSON.stringify(msg));
+            if (msg.type == "accept") {
+                signalingChannel.close();
+                signalingChannel = null;
+            } else if (msg.type == "decline") {
+                signalingChannel.close();
+                signalingChannel = null;
+            }
+        }
+    });
+    signalingChannel.connect(function(error) {
+        console.error(error);
+    });
+   
+}
+
+function connect(callid) {
+    callChannel = createCallChannel(callid, {
+        onWaiting: function() { console.log('waiting'); },
+        onConnected: function() {
+            console.log('connected');
+            getMedia(function() {
+                createPC();
+            });
+        },
+        onMessage: function(msg) {
+			// 判断对方接收
+			if( msg == 0 ){
+				alert('The call has been decline');
+			}
+			if( msg == 1 ){
+				alert('The call has been answered');
+			}
+			// 判断对方接收 end
+            console.log(JSON.stringify(msg));
+            if (msg.type == "answer") {
+                pc.setRemoteDescription(new RTCSessionDescription(msg));
+            } else if (msg.type == "candidate") {
+                pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+            }
+        }
+    });
+    
+    callChannel.connect(function(error) {
+    	console.log("Error: " + error);
+        console.error(error);
+    });
+}
+
+function getMedia(callback) {
+    getUserMedia({"audio":true, "video":true}, function(stream) {
+        local_stream = stream;
+        attachMediaStream($$("div.local video"), stream);
+        if (callback) {
+            callback();
+        }
+    }, function(error) {
+        console.error("cannot get media stream");
+    });
+}
+
+function createPC() {
+//    var config = {"url": "stun:stun.l.google.com:19302"}; // STUN-only
+    // var config = {"url":"turn:user@turn.webrtcbook.com", "credential":"test"}); // TURN
+    // var config = {"url":"turn:user@turn-only.webrtcbook.com", "credential":"test"}); // TURN-only
+//    var config ={"urls":"turn:turn.webrtcbook.com","username":"user","credential":"test"};
+	var config = [{"urls":"stun:stun.l.google.com:19302"},{"urls":"turn:turn.webrtcbook.com","username":"user","credential":"test"}];
+	
+    pc = new RTCPeerConnection({iceServers:config});
+    pc.onicecandidate = function(event) {
+        if (event.candidate) {
+            callChannel.send({type: "candidate", candidate: event.candidate });
+        }
+    };
+    pc.onaddstream = function(event) {
+        attachMediaStream($$("div.remote video"), event.stream);
+        console.log("call active");
+    };
+    pc.onremovestream = function(event) {
+        console.log("removed stream");
+    };
+    
+    pc.addStream(local_stream);
+    dc = pc.createDataChannel('chat');
+    console.log("create datachannel ");
+    setupDataHandlers();
+    pc.ondatachannel = onDataChannelAdded;
+    pc.createOffer(function(offer) {
+        pc.setLocalDescription(offer, function() {
+            callChannel.send(offer); 
+        });
+    }, function(error) {
+        console.log(error);
+    }, {mandatory: { OfferToReceiveAudio: true, OfferToReceiveVideo: true}});
+
+}
+function onDataChannelAdded(e) {
+  console.log("onDataChannelAdded");
+  dc = e.channel;
+  setupDataHandlers();
+  console.log("setupDataHandlers when onDataChannelAdded");
+  sendChat("Hello,I need help!!!");
+}
+function setupDataHandlers() {
+  data.send = function(msg) {
+    msg = JSON.stringify(msg);
+    console.log("sending " + msg + " over data channel");
+    dc.send(msg);
+  }
+  dc.onmessage = function(e) {
+    var msg = JSON.parse(e.data),
+        cb = document.getElementById("chatbox"),
+        rtt = document.getElementById("rtt");
+    
+    if (msg.rtt) {
+      // if real-time-text (per keypress) message, display in
+      // real-time window
+      console.log("received rtt of '" + msg.rtt + "'");
+      rtt.value = msg.rtt;
+      msg = msg.rtt;
+    } else if (msg.chat) {
+      // if full message, display in chat window,
+      // reset real-time window,
+      // and force chat window to last line
+      console.log("received chat of '" + msg.chat + "'");
+      cb.value += "PSAP: " + msg.chat + "\n";
+      rtt.value = "";
+      cb.scrollTop = cb.scrollHeight;
+      msg = msg.chat;
+    } else {
+      console.log("received " + msg + "on data channel");
+    }
+  };
+}
+function sendRtt() {
+  var msg = document.getElementById("chat").value;
+  data.send({'rtt':msg});
+}
+
+// Send normal chat message.  This happens when there is an enter
+// keyup event, meaning that the remote user has finished typing
+// a line.  This is also used to send our initial hello message.
+function sendChat(msg) {
+  var cb = document.getElementById("chatbox"),
+      c = document.getElementById("chat");
+
+  // display message locally, send it, and force chat window to
+  // last line
+  msg = msg || c.value;
+  console.log("sendChat(" + msg + ")");
+  cb.value += "me: " + msg + "\n";
+  data.send({'chat':msg});
+  c.value = '';
+  cb.scrollTop = cb.scrollHeight;
+}
+
+function hangup() {
+    if (callChannel) {
+        callChannel.close();
+        callChannel = null;
+    }
+    if (pc) {
+        pc.close();
+        pc = null;
+    }
+    if (local_stream) {
+        local_stream.stop();
+        local_stream = null;
+    }
+}
+</script>
+<style type="text/css">
+	.form * { font-size:12px; }
+	.form {
+		margin:10px 0;
+	}
+	.form div {
+		margin-top:5px;
+	}
+	.form label {
+		display:inline-block;
+		width:100px;
+	}
+</style>
+<div class="content">
+    <div class="control">
+        <span>Target:</span>
+        <input type="text" id="target" onkeyup="if (event.keyCode == 13) { callout(); return false;} return true;"/>
+		
+		<!-- 信息 -->
+		<div class="form">
+			<div>
+				<label for="">Location：</label>
+				<textarea id="a">please enter the full location information</textarea>
+			</div>
+			<div>
+				<label for="">floor：</label>
+				<input id="b" />
+			</div>
+			<div>
+				<label for=""> room：</label>
+				<input id="c" />
+			</div>
+			<div>
+				<label for="">Contact-Info：</label>
+				<input id="d" />
+			</div>
+			<div>
+				<label for="">Alt：</label>
+				<input id="e" />
+			</div>
+			<div>
+				<label for="">Name：</label>
+				<input id="f" />
+			</div>
+		</div>
+
+		<!-- 信息 end -->
+		<div style="width:100%;vertical-align:top">
+            <textarea id="chatbox" rows="10" style="width:100%"></textarea>
+        <p style="width:100%"><b>Real-time:</b>
+            <textarea id="rtt" rows="2" style="width:100%"></textarea>
+         </p>
+             <p style="width:100%"><b>Chat message:</b>
+             <input type="text" style="width:100%" name="chat" id="chat"
+                 onkeyup="sendRtt();
+                    if (event.keyCode == 13) {
+                      sendChat(); return false;}"/>
+             </p>
+            </div>
+        <input type="button" value="Call" onclick="callout();" />
+        <br/>
+        <input type="button" value="End" onclick="hangup();" />
+    </div>
+    <div class="local">
+        <video autoplay controls muted></video>
+        <!-- TODO: change to audio element here and next -->
+    </div>
+    <div class="remote">
+        <video autoplay controls></video>
+    </div>
+</div>
+
+</body>
+</html>

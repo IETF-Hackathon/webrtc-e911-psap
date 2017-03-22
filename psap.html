@@ -1,0 +1,432 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" href="css/global.css" />
+	<link rel="stylesheet" href="css/page.css" />
+</head>
+<body>
+<script src="./js/adapter.js" type="text/javascript"></script>
+<script src="https://webrtc.github.io/adapter/adapter-0.2.9.js" type="text/javascript"></script>
+
+<!-- load Agora.io signaling library -->
+<script src="https://demo-sig.agora.io/web/AgoraSig-1.1.0.js"></script>
+
+<script src="./js/clientAgoraSignalingCallChannel.js" type="text/javascript"></script>
+<script src="./js/clientAgoraCallChannel.js" type="text/javascript"></script>
+
+<script src="https://www.google.com/maps/api/js?sensor=false"></script>
+<script src="./js/page.js" type="text/javascript"></script>
+
+	<div class="layer">
+		<div class="abs box layer-box">
+			<div class="box-h">Incoming Call</div>
+			<div class="box-c" style="background:#00ffcc;">
+				<div class="clear forminfo">
+					<div class="forminfo-item">
+						<label for="">Caller</label>
+						<input class="input-text" id="dd" />
+					</div>
+					<div class="forminfo-item">
+						<label for="">Subject</label>
+						<input class="input-text" />
+					</div>
+					<div class="forminfo-item">
+						<label for="">User Agent</label>
+						<input class="input-text" />
+					</div>
+					<div class="forminfo-item">
+						<label for="">Call Type</label>
+						<input class="input-text" value="sos" />
+					</div>
+					<div class="ta-c forminfo-item forminfo-item-radios">
+						<input type="radio" class="jstype" name="jstype" id="jstype_a" checked value="a" />
+						<label for="jstype_a">Accept</label>
+						<input type="radio" class="jstype" name="jstype" id="jstype_b" value="b" />
+						<label for="jstype_b">Busy</label>
+						<input type="radio" class="jstype" name="jstype" id="jstype_c" value="c" />
+						<label for="jstype_c">Decline</label>
+						<input class="input-text" style="width:88px;" />
+					</div>
+					<div class="ta-c forminfo-item">
+						<button type="button" class="btn" id="J_btn_answer" style="padding:0 20px; font-size:12px;">Answer</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="allmap">
+		<div class="box">
+			<div class="box-h">
+				Caller Location
+				<a href="javascript:;" class="r box-h-close">Close X</a>
+			</div>
+			<div class="box-c">
+				<div id="allmap"></div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="abs video-box" id="videobox">
+		<div class="box">
+			<div class="box-h">
+				Video
+				<a href="javascript:;" class="r box-h-close">Close X</a>
+			</div>
+			<div class="rel box-c">
+				<div class="local small">
+					<video autoplay controls muted></video>
+				</div>
+				<div class="remote big">
+					<video autoplay controls></video>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+	<div class="header">
+		<div class="rel wrapper">
+			<span style="margin-left:22px; font-size:14px;"><span class="dn">Emergent PSAP Call Taker</span>
+				<img src="imgs/logo.png" alt="" />
+			</span>
+			<ul class="abs nav">
+				<li><a href="#">General SOPs</a></li>
+				<li><a href="#">FAQ's</a></li>
+				<li><a href="javascript:;" id="J_btn_map">MAP</a></li>
+				<li><a href="javascript:;" id="J_btn_video">Video</a></li>
+				<li><a href="#">Helpful Links</a></li>
+				<li><a href="#">Queries</a></li>
+				<li><a href="#">Options</a></li>
+				<li><a href="#">Logout<em class="login-point"></em></a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div class="wrapper" style="padding-bottom:100px;">
+		<div class="rel clear" style="margin-top:16px;">
+
+			<div class="l box" style="margin-left:15px; width:380px;">
+				<div class="box-h">Caller Information</div>
+				<div class="box-c">
+					<div class="clear forminfo">
+						<div class="forminfo-item">
+							<label for="" class="rel" style="top:-25px;">Caller Location</label>
+							<textarea id="a" class="forminfo-textarea"></textarea>
+						</div>
+						<div class="forminfo-item">
+							<label for="">floor</label>
+							<input class="input-text" style="width:100px;" id="b" />
+							<label for="" style="width:40px;">room</label>
+							<input class="input-text" style="width:55px;" id="c" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Contact Info</label>
+							<input class="input-text" id="d" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Alternate</label>
+							<input class="input-text" id="e" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Name</label>
+							<input class="input-text" id="f" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Service Provider</label>
+							<input class="input-text" style="width:100px;" />
+							<label for="" style="width:40px;">Class</label>
+							<input class="input-text" style="width:55px;" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Secondary Contact</label>
+							<input class="input-text" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Latitude/Longitude</label>
+							<input class="input-text" style="width:102px;" />
+							<input class="input-text" style="margin-left:10px; width:102px;" />
+						</div>
+						<div class="ta-c forminfo-item forminfo-item-btns" style="margin-top:10px;">
+							<button type="button" class="btn">Add Addresses</button>
+							<button type="button" class="btn">Call History</button>
+							<button type="button" class="btn">Additional Data</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="l box" style="margin-left:3px; width:270px;">
+				<div class="box-h">Call List</div>
+				<div class="box-c">
+					<div class="call-list">
+						<div class="ta-c ">
+							Search
+							<input class="input-text" style="width:150px;" />
+							<button type="button" class="rel btn" style="top:-1px; padding:0 10px; height:22px;">X</button>
+						</div>
+						<div class="call-list-itmes">
+							<ul>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+								<li></li>
+							</ul>
+						</div>
+						<div class="ta-c call-list-btns">
+							<button type="button" class="btn btn-gary">Current</button>
+							<button type="button" class="btn">History</button>
+							<button type="button" class="btn">Full History</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="l box" style="margin-left:3px; width:290px;">
+				<div class="box-h">Telphone Controls</div>
+				<div class="box-c">
+					<div class="telphone">
+						<div class="ta-c telphone-btns">
+							<button type="button" class="btn btn-red">Auto Answer?</button>
+							<button type="button" class="btn btn-gary sm">Dlal</button>
+							<button type="button" class="btn btn-gary">Call Back</button><br>
+							<button type="button" class="btn btn-gary">Hold</button>
+							<button type="button" class="btn btn-gary sm">Conf</button>
+							<button type="button" class="btn btn-gary">Transfer</button><br>
+							<button type="button" class="btn btn-gary">Release</button>
+							<button type="button" class="btn btn-gary sm">Mute</button>
+							<button type="button" class="btn btn-gary" style="width:45px;">Full</button>
+							<button type="button" class="btn btn-gary sm">Partlal</button>
+						</div>
+						<div class="clear telphone-bh">
+							<div class="l telphone-bh-l">
+								<input class="input-text" />
+								<div class="telphone-bh-hm">
+									<div>1</div>
+									<div>2<p>ABC</p></div>
+									<div>3<p>DEF</p></div>
+									<div>4<p>GHI</p></div>
+									<div>5<p>JKL</p></div>
+									<div>6<p>MNO</p></div>
+									<div>7<p>PQRS</p></div>
+									<div>8<p>TUV</p></div>
+									<div>9<p>WXYZ</p></div>
+									<div>*</div>
+									<div>0</div>
+									<div>#</div>
+								</div>
+								<input class="input-text" value="call status -- idea" />
+							</div>
+							<div class="r telphone-bh-r">
+								<button type="button" class="btn">speed dlal 1</button>
+								<button type="button" class="btn">speed dlal 2</button>
+								<button type="button" class="btn">speed dlal 3</button>
+								<button type="button" class="btn">speed dlal 4</button>
+								<button type="button" class="btn">speed dlal 5</button>
+								<button type="button" class="btn">speed dlal 6</button>
+								<button type="button" class="btn">speed dlal 7</button>
+								<button type="button" class="btn">speed dlal 8</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="l box" style="margin-left:3px; width:305px;">
+				<div class="box-h">IM/TDD/Real-Time Text/SMS</div>
+				<div class="box-c">
+					<div class="tdd">
+						<p class="rel">
+							Text Log
+							<span class="abs" style="right:0; top:-6px;"><button type="button" class="btn btn-gary">Print</button></span>
+						</p>
+						<textarea id="chatbox" rows="10"></textarea>
+						<p>Caller Real-Time Text</p>
+						<input class="input-text" />
+						<p>Enter message below</p>
+						<input class="input-text" input type="text"  name="chat" id="chat" onkeyup="sendRtt();
+                    		if (event.keyCode == 13) {
+                      		sendChat(); return false;}"/>
+						<p class="ta-r">in a call</p>
+					</div>
+				</div>
+			</div>
+			
+			
+			
+		</div>
+		
+		<div class="clear" style="margin-top:6px;">
+			<div class="l box" style="margin-left:15px; width:675px;">
+				<div class="box-h">Emergency Information</div>
+				<div class="box-c">
+					<div class="clear rel forminfo forminfo2">
+						<input type="hidden" id="login" />
+						<div class="forminfo-item">
+							<label for="" class="rel" style="top:-25px;">Location</label>
+							<textarea></textarea>
+						</div>
+						<div class="forminfo-item">
+							<label for="">Community</label>
+							<input class="input-text" style="width:190px;" />
+							<label for="" style="width:40px;">State</label>
+							<input class="input-text" style="width:66px;" />
+						</div>
+						<div class="forminfo-item">
+							<label for="">Latitude/Longitude</label>
+							<input class="input-text" />
+							<input class="input-text" style="margin-left:10px;" />
+						</div>
+						<div class="forminfo-item">
+							<label for="" class="rel" style="top:-5px;">Emergency Type</label>
+							<textarea style="width:300px; height:20px; border-right:none;"></textarea>
+							<button type="button" class="abs btn btn-xiala" style="width:20px; height:22px;"><em></em></button>
+						</div>
+						<div class="forminfo-item">
+							<label for="" class="rel" style="top:-5px;">Secondary Type</label>
+							<textarea style="width:300px; height:20px; border-right:none;"></textarea>
+							<button type="button" class="abs btn btn-xiala" style="width:20px; height:22px;"><em></em></button>
+						</div>
+						<div class="forminfo-item">
+							<label for="">Name</label>
+							<input class="input-text" style="width:320px;" />
+						</div>
+						<div class="forminfo-item">
+							<label for="" class="rel" style="top:-25px;">Notes</label>
+							<textarea></textarea>
+						</div>
+						<div class="ta-c forminfo-item forminfo-item-btns" style="width:440px; margin-top:10px;">
+							<button type="button" class="btn btn-gary">Discrepency</button>
+							<button type="button" class="btn btn-red">Dispatch</button>
+							<button type="button" class="btn">Call SOP</button>
+							<button type="button" class="btn">Call Script</button>
+							<button type="button" class="btn btn-gary">Print</button>
+						</div>
+						
+						<div class="abs forminfo2-r">
+							<p>Response Agencies</p>
+							<textarea></textarea>
+							<div style="margin-top:5px;">
+								<button type="button" class="btn btn-gary" style="width:100%; font-size:12px;">Discrepency</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="l" style="margin-left:3px;">
+
+				<div class="dn box" style="margin-top:5px; width:305px;">
+					<div class="box-h">Audio Control</div>
+					<div class="box-c">
+						<div class="ta-c forminfo" style="color:#666;">
+							Media path connected?
+							<input type="checkbox" checked />
+							Media path flowing?
+							<input type="checkbox" />
+						</div>
+					</div>
+				</div>
+				
+				<div class="box" style="margin-left:3px; width:305px;">
+					<div class="box-h">ACD Display</div>
+					<div class="box-c">
+						<div class="clear forminfo forminfo3">
+							<div class="forminfo-item">
+								<label for="">Response Time</label>
+								<input class="input-text" value="00:00" />
+							</div>
+							<div class="forminfo-item">
+								<label for="">Call Duration</label>
+								<input class="input-text" value="00:00" />
+							</div>
+							<div class="forminfo-item">
+								<label for="">Hold Time</label>
+								<input class="input-text" value="00:00" />
+								<button type="button" class="btn" style="width:60px;">Hold Alert</button>
+							</div>
+							<div class="forminfo-item">
+								<label for="">My Status</label>
+								<select>
+									<option>avallable</option>
+									<option>avallable</option>
+								</select>
+								<button type="button" class="btn" style="display:none; width:60px;">Refresh</button>
+							</div>
+							<div class="dn ta-c forminfo-item" style="margin-top:10px;">
+								<a href="#">Call Queue</a> |
+								<a href="#">Record</a> |
+								<a href="#">Recording</a> |
+								<a href="#">Auto Locate</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="box" style="margin-top:5px; width:305px;">
+					<div class="box-h">Particlpants</div>
+					<div class="box-c" style="height:118px;">
+						<div class="png-t"></div>
+					</div>
+				</div>
+				
+			</div>
+			
+			<div class="l box" style="margin-left:3px; width:270px;">
+				<div class="box-h">Recording</div>
+				<div class="box-c" style="height:130px;">
+					<div class="ta-c recording">
+						<div class="clear recording-btns">
+							<div>o <p>stop</p></div>
+							<div><span>|</span>< <p>begin</p></div>
+							<div><< <p>rev</p></div>
+							<div>> <p>play</p></div>
+							<div>>> <p>fwd</p></div>
+							<div>><span>|</span> <p>end</p></div>
+						</div>
+						<div style="font-size:10px;">00:00 of 00:00 (00:00)</div>
+						
+						<div class="recording-jd"></div>
+						<div class="recording-jd-k"></div>
+						<div class="rel recording-hander">
+							<div class="recording-jd2"></div>
+							<em><em></em></em>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			
+			
+		</div>
+		<div class="copy"><p> user interface is inspired from <a href="http://emergentcomm.com" target="_blank" title="">http://emergentcomm.com</a></p></div>
+	</div>
+	
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
