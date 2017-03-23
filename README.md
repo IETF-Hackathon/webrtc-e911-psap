@@ -5,6 +5,8 @@ Project run by the RTC Lab at IIT (https://appliedtech.iit.edu/rtc-lab)
 
 Code is running at:
 
-https://demo.webrtcbook.com:4990/caller.html?target=911
+    https://demo.webrtcbook.com:4990/caller.html?target=911
 
-https://demo.webrtcbook.com:4990/psap.html?login=911&auto=true
+    https://demo.webrtcbook.com:4990/psap.html?login=911&auto=true
+
+Authors (in alphabetical order): Dan Burnett, Haotian Gu, Alan Johnston, and Kundan Singh
