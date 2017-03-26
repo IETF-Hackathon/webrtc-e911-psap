@@ -11,4 +11,4 @@ Code is running at:
 
     https://alan.bramsoft.com/webrtctosip/
 
-Authors (in alphabetical order): Dan Burnett, Haotian Gu, Alan Johnston, and Kundan Singh
+Authors (in alphabetical order): Dan Burnett, Nicolas Deschamps, Maxime Descos, Haotian Gu, Alan Johnston, Enzo Piacenza, and Kundan Singh
