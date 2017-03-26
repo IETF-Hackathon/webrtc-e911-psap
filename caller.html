@@ -76,7 +76,30 @@ function get_query_param(name, def_value) {
     return results === null ? (def_value || ""): decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(displayLocation);
+    } else { 
+        console.log("Geolocation is not supported by this browser.");
+    }
+}
+
+function displayLocation(position) {
+	var lat = document.getElementById("lat");
+	var lon = document.getElementById("lon");
+	
+    console.log("Latitude: " + position.coords.latitude + 
+    "<br>Longitude: " + position.coords.longitude);
+    
+    lat.value = position.coords.latitude;
+    lon.value = position.coords.longitude;
+    
+}
+
 function callout() {
+// get geolocation
+	getLocation();
+
     signalingChannel = createSignalingChannel($$("#target").value, {
 //    signalingChannel = createSignalingChannel("911", {
         onWaiting: function() {
@@ -89,7 +112,9 @@ function callout() {
             connect(callid);
 			// 传数据
 			var o = {
-				a: $$("#a").value
+				lat: $$("#lat").value
+				,lon: $$("#lon").value			
+				,a: $$("#a").value
 				,b: $$("#b").value
 				,c: $$("#c").value
 				,d: $$("#d").value
@@ -295,9 +320,16 @@ function hangup() {
 		<div class="form">
 			<div>
 				<label for="">Location：</label>
-				<textarea id="a">please enter the full location information</textarea>
+				<textarea id="a" placeholder="please enter the full location"></textarea>
 			</div>
 			<div>
+				<label for="">Lattitude：</label>
+				<input id="lat" />
+			</div>
+			<div>
+				<label for="">Longitude：</label>
+				<input id="lon" />
+			</div>			<div>
 				<label for="">floor：</label>
 				<input id="b" />
 			</div>
@@ -333,7 +365,10 @@ function hangup() {
              </p>
             </div>
         <input type="button" value="Call" onclick="callout();" />
-        <br/>
+        <br>
+        <br>
+        <br>
+        <br>
         <input type="button" value="End" onclick="hangup();" />
     </div>
     <div class="local">

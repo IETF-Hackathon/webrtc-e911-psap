@@ -1,21 +1,35 @@
-
 var signalingChannel, callChannel;
 
 var pc, local_stream,
     doNothing = function() {},dc, data = {};
+    
+var socket = new JsSIP.WebSocketInterface('wss://carol.bramsoft.com:443');
+var configuration = {
+  sockets: [socket],
+  outbound_proxy_set: 'wss://carol.bramsoft.com:443',
+  uri:                'sip:websip@carol.bramsoft.com',
+  password:           'websip',
+  realm: 'carol.bramsoft.com',
+  register: true
+};
+
+
 
 window.onload = function () {
     initialize();
-	
 	
 	var map = $$('#J_btn_map'),
 		location = $$('#a');
 	/**/
 	var geocoder = new google.maps.Geocoder();
 	map.onclick = function(){
-		//geocoder.geocode({ address: 'Moor Building 35274 State ST Fremont. U.S.A' }, function geoResults(results, status) {  
+		console.log("Map button clicked!");
+	    console.info(location.value);
+		if (location.value) {
+//		generate map based on street address 
 		geocoder.geocode({ address: location.value }, function geoResults(results, status) {  
-			if (status == google.maps.GeocoderStatus.OK) {  
+	  	    console.log("Address is present!");
+	  		if (status == google.maps.GeocoderStatus.OK) {  
 				console.log(results[0].geometry.location.lat());  
 				console.log(results[0].geometry.location.lng());
 				
@@ -34,8 +48,35 @@ window.onload = function () {
 				});
 			}  
 		});
+	  } else {
+	  	 console.log("No address present!");
+	  	 //		generate map based on street address 
+//		geocoder.geocode({ address: location.value }, function geoResults(results, status) {  
+//			if (status == google.maps.GeocoderStatus.OK) {  
+//				console.log(results[0].geometry.location.lat());  
+//				console.log(results[0].geometry.location.lng());
+				
+				$$('.allmap').style.display = 'block';
+				
+//				var latlng = new google.maps.LatLng(results[0].geometry.location.lat(), results[0].geometry.location.lng());
+				var latlng = new google.maps.LatLng($$("#lat").value, $$("#lon").value);
+				
+				var myOptions = {
+					zoom: 15,
+					center: latlng,
+					mapTypeId: google.maps.MapTypeId.ROADMAP
+				};
+				var gmap = new google.maps.Map(document.getElementById("allmap"), myOptions);
+				var marker = new google.maps.Marker({
+					position: latlng,
+					map: gmap
+				});
+//			}  
+//		});
+
+	  }
 	}
-	
+
 	
 	$$('.allmap .box-h-close').onclick = function(){
 		$$('.allmap').style.display = 'none';
@@ -88,6 +129,80 @@ function get_query_param(name, def_value) {
 }
 
 function login() {
+
+    var options = {
+      media: {
+        constraints: {
+          audio: true,
+          video: true
+        }
+      }
+    };
+
+    var ua = new JsSIP.UA(configuration);
+    ua.start();
+    ua.register();
+    ua.on('newRTCSession', function(data) {   
+     	console.log("Incoming INVITE!!"); 
+     	console.info (data.request.body);
+     	console.info(data);
+     	data.session.answer();
+     	
+     	console.info("XML body");
+     	console.info(initialbody);
+     	var inviteperso=initialbody;
+		console.info("blabla");
+		var attributes=["country", "A1", "A2", "A6", "PRD", "STS", "HNO", "LOC", "FLR", "ROOM", "PLC"];
+		console.info("after attribute");
+		var location = {"country":"", "A1":"", "A2":"", "A6":"", "PRD":"", "STS":"", "HNO":"", "LOC":"", "FLR":"", "ROOM":"", "PLC":""};
+		console.info("after var");
+
+		for(i=0; i<attributes.length;i++){
+  			var index = "<ca:"+attributes[i]+">";
+  			var start = inviteperso.search(index) + index.length;
+  			var stop = inviteperso.search("</ca:"+attributes[i]+">");
+  			var str;
+  			str=inviteperso.substring(start,stop);
+  			location[attributes[i]]=str;  
+  			console.log("fill location");                      
+		};
+		
+		$$("#b").value = location.FLR;
+		$$("#c").value = location.PLC;
+		var address;
+		address = location.HNO + " " + location.PRD + " " + location.A6 + " " + location.STS +  ", " + location.A2  + ", " + location.A1 +  ", " + location.country;
+		console.log(address);
+		$$("#a").value = address;
+
+     	
+     });
+
+//    ua.call("sip:enzop@carol.bramsoft.com");
+    
+    console.log("JsSIP initialized");
+/*
+    ua.on('connected', function () {
+      console.log('Connected (Unregistered)');
+    });
+
+   ua.on('registered', function () {
+      console.log('Connected (Registered)');
+    });
+
+    ua.on('unregistered', function () {
+      console.log('Connected (Unregistered)');
+    });
+
+    ua.on('invite', function (session) {
+      console.log('incoming invite');
+      session.accept(options);
+    });
+*/
+
+
+
+
+
    // getMedia(function() {
 
            //createPC();
@@ -104,7 +219,9 @@ function login() {
             if (msg.type == 'invite') {
                 // TODO: add incoming call prompt. and continue when PSAP user answers the call.
 				
-                // 接收信息
+                // 接收信息 - Receive Information
+				$$("#lat").value = msg.o.lat;
+				$$("#lon").value = msg.o.lon;
 				$$("#a").value = msg.o.a;
 				$$("#b").value = msg.o.b;
 				$$("#c").value = msg.o.c;

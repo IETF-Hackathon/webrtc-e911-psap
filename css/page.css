@@ -99,7 +99,7 @@ textarea {
 
 .allmap {
 	display:none;
-	position:absolute; top:100px; left:50%; z-index:9999;
+	position:absolute; top:100px; left:30%; z-index:9999;
 	margin-left:-200px;
 }
 #allmap {
@@ -146,7 +146,7 @@ textarea {
 
 .video-box {
 	display:none;
-	top:100px; left:50%; z-index:999;
+	top:100px; left:70%; z-index:999;
 	width:500px;
 	
 	-webkit-transform:translateX(-50%);
