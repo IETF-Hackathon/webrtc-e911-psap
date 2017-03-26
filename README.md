@@ -9,6 +9,4 @@ Code is running at:
 
     https://alan.bramsoft.com/webrtctowebrtc/psap.html?login=911&auto=true
 
-    https://alan.bramsoft.com/webrtctosip/
-
 Authors (in alphabetical order): Dan Burnett, Nicolas Deschamps, Maxime Descos, Haotian Gu, Alan Johnston, Enzo Piacenza, and Kundan Singh
