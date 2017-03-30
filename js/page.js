@@ -15,6 +15,8 @@ var configuration = {
 
 
 
+
+
 window.onload = function () {
     initialize();
 	
@@ -80,7 +82,6 @@ window.onload = function () {
 	
 	$$('.allmap .box-h-close').onclick = function(){
 		$$('.allmap').style.display = 'none';
-		// change try
 	}
 	
 	$$('#J_btn_video').onclick = function(){
@@ -139,75 +140,23 @@ function login() {
         }
       }
     };
-
     var ua = new JsSIP.UA(configuration);
     ua.start();
     ua.register();
-    ua.on('newRTCSession', function(data) {   
-     	console.log("Incoming INVITE!!"); 
-     	console.info (data.request.body);
-     	console.info(data);
-     	data.session.answer();
-     	
-     	console.info("XML body");
-     	console.info(initialbody);
-     	var inviteperso=initialbody;
-		console.info("blabla");
-		var attributes=["country", "A1", "A2", "A6", "PRD", "STS", "HNO", "LOC", "FLR", "ROOM", "PLC"];
-		console.info("after attribute");
-		var location = {"country":"", "A1":"", "A2":"", "A6":"", "PRD":"", "STS":"", "HNO":"", "LOC":"", "FLR":"", "ROOM":"", "PLC":""};
-		console.info("after var");
-
-		for(i=0; i<attributes.length;i++){
-  			var index = "<ca:"+attributes[i]+">";
-  			var start = inviteperso.search(index) + index.length;
-  			var stop = inviteperso.search("</ca:"+attributes[i]+">");
-  			var str;
-  			str=inviteperso.substring(start,stop);
-  			location[attributes[i]]=str;  
-  			console.log("fill location");                      
-		};
-		
-		$$("#b").value = location.FLR;
-		$$("#c").value = location.PLC;
-		var address;
-		address = location.HNO + " " + location.PRD + " " + location.A6 + " " + location.STS +  ", " + location.A2  + ", " + location.A1 +  ", " + location.country;
-		console.log(address);
-		$$("#a").value = address;
-
-     	
-     });
-
-//    ua.call("sip:enzop@carol.bramsoft.com");
+    ua.on('newRTCSession', function(data) {
+      //We open the Layer to answer the call
+      $$(".layer").style.display = 'block';
+      //We wait till the operator answer
+      $$('#J_btn_answer').onclick = function(){
+	attachRemoteAndLocalStream(data);
+      };
+      // First we parse the xml and we fill location information
+      fillLocation(parseXML(initialbody));
+    });
     
     console.log("JsSIP initialized");
-/*
-    ua.on('connected', function () {
-      console.log('Connected (Unregistered)');
-    });
-
-   ua.on('registered', function () {
-      console.log('Connected (Registered)');
-    });
-
-    ua.on('unregistered', function () {
-      console.log('Connected (Unregistered)');
-    });
-
-    ua.on('invite', function (session) {
-      console.log('incoming invite');
-      session.accept(options);
-    });
-*/
 
 
-
-
-
-   // getMedia(function() {
-
-           //createPC();
-     //});
     signalingChannel = createSignalingChannel($$("#login").value, {
         onWaiting: function() {
             console.log('psap waiting');
@@ -427,4 +376,56 @@ function hangup() {
         local_stream.stop();
         local_stream = null;
     }
+}
+
+function parseXML(initialBody){
+    var xmlBody = initialBody;
+    var attributes=["country", "A1", "A2", "A6", "PRD", "STS", "HNO", "LOC", "FLR", "ROOM", "PLC"];
+    var location = {"country":"", "A1":"", "A2":"", "A6":"", "PRD":"", "STS":"", "HNO":"", "LOC":"", "FLR":"", "ROOM":"", "PLC":""};
+    for(i=0; i<attributes.length;i++){
+        var index = "<ca:"+attributes[i]+">";
+        var start = xmlBody.search(index) + index.length;
+        var stop = xmlBody.search("</ca:"+attributes[i]+">");
+        var locationAttributes;
+        locationAttributes=xmlBody.substring(start,stop);
+        location[attributes[i]]=locationAttributes;                        
+    };
+    return location;
+}
+
+function fillLocation(location){
+    var address;
+    address = location.HNO + " " + location.PRD + " " + location.A6 + " " + location.STS +  ", " + location.A2  + ", " + location.A1 +  ", " + location.country;
+    $$("#b").value = location.FLR;
+    $$("#c").value = location.PLC;
+    $$("#a").value = address;
+}
+
+function getMediaTest() {
+  navigator.getUserMedia({"audio":true, "video":true},
+    gotUserMediaTest, didntGetUserMediaTest);
+}
+
+function gotUserMediaTest(stream) {
+  var myStream=stream;
+  localvideo.srcObject=myStream;
+  //attachMedia();
+}
+
+function didntGetUserMediaTest() {
+  console.log("couldn't get video");
+}
+
+function attachRemoteAndLocalStream(data){
+  var remotevideo=document.getElementById("remotevideo");
+  var localvideo=document.getElementById("localvideo");
+  $$(".layer").style.display = 'none';
+  $$("#videobox").style.display = 'block';
+  data.session.answer();
+  data.session.connection.addEventListener('addstream',(event)=>
+        {
+          getMediaTest();
+          remotevideo.srcObject=event.stream;
+        });
+
 }
