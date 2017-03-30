@@ -80,6 +80,7 @@ window.onload = function () {
 	
 	$$('.allmap .box-h-close').onclick = function(){
 		$$('.allmap').style.display = 'none';
+		// change try
 	}
 	
 	$$('#J_btn_video').onclick = function(){
